@@ -543,8 +543,77 @@ Talking about future ideas, here are some of the ideas for the future -
 ]
 ```
 
-- Give warning/information to user about how backup of root policy is not taken, so that they don't have to read the docs so much to understand this information. Reasoning - This is because - empty `root` Vault Policy - nothing to backup. Also, Vault does not support updating it / changing it - which would happen during the restore process - that is, reading from the Vault will succeed as part of backup, but later when we are writing to Vault as part of restore process, it will fail / throw error. So, no point in backing up an empty `root` policy to later try to restore it and get an error that `root` policy cannot be updated / changed
+- Give warning/information to user about how backup of root policy is not taken, so that they don't have to read the docs so much to understand this information. Reasoning - This is because - empty `root` Vault Policy - nothing to backup. Also, Vault does NOT support updating it / changing it - which would happen during the restore process - that is, reading from the Vault will succeed as part of backup, but later when we are writing to Vault as part of restore process, it will fail / throw error. So, no point in backing up an empty `root` policy to later try to restore it and get an error that `root` policy cannot be updated / changed
 
 - Provide ability to give a specific file name for storing the vault policy backup json and not just use the default hard coded `vault_policy_backup.json` file name
 
 - Get rid of `root` Vault policy from the output that says `backing up the following vault policies in vault` as it can be confusing for the user to see that the `root` Vauly policy is being backed up but in reality it's empty policy and does not have any content and does **NOT** get backed up by the tool and that's what we say too in the docs. It's a major mismatch in the tool's behaviour / display information and the tool's documentation, especially it's reality
+
+- Consider changing the structure of the Vault Policy Backup JSON file
+
+Why change the structure of the Vault Policy Backup JSON file? It's because current file - someone can use a file like the below for the restore -
+
+```json
+{
+  "policies": [
+    {
+      "name": "allow_secrets",
+      "policy": "path \"secret/*\" {\n  capabilities = [\"create\", \"read\", \"update\", \"delete\", \"list\"]\n}\n"
+    },
+    {
+      "name": "allow_secrets",
+      "policy": "# KV v2 secrets engine mount path is \"stage-kv\"\npath \"stage-kv/*\" {\n  capabilities = [\"create\", \"read\", \"update\", \"delete\", \"list\"]\n}\n"
+    }
+  ]
+}
+```
+
+Notice how the above two policies have same name but different content. This can be weird and confusing. So, it's better to change the structure of the Vault Policy Backup JSON file. This is because, though the tool I have in this repository would never / would probably never create a content like the above, anyone can create a file like the above and use it for the restore process - causing the tool to restore the `allow_secrets` policy twice, but each time with different content and only the last one will be taken up and written to Vault finally and will be present in Vault finally
+
+One good thing about the above JSON file structure is - it is clear as to what's the policy name as it's labelled as `name` and what's the policy content as it's labelled as `policy`
+
+Consider changing the structure of the Vault Policy Backup JSON file to something like this -
+
+```json
+{
+  "policies": {
+    "allow_secrets": {
+      "name": "allow_secrets",
+      "policy": "path \"secret/*\" {\n  capabilities = [\"create\", \"read\", \"update\", \"delete\", \"list\"]\n}\n"
+    }
+  }
+}
+```
+
+
+Why not the above? The same problem as before comes up, but in a different manner. There are two places where the Vault Policy name is used. One is in the `name` field and the other is in the policy's key. That's like two sources of truth. Which one do we use to store the Vault Policy name? If the `name` field is used, then it again brings back the problem of two policies having different keys but same `name` and different `policy` values, causing problems and confusion
+
+So, we could do something like this -
+
+```json
+{
+  "policies": {
+    "allow_secrets": {
+      "policy": "path \"secret/*\" {\n  capabilities = [\"create\", \"read\", \"update\", \"delete\", \"list\"]\n}\n"
+    }
+  }
+}
+```
+
+Why not the above? However there's not much inside a Policy except the Policy content in Hashicorp Configuration Language (HCL) format. So, why just have one field inside the policy instead of just directly putting it in the value of the policy?
+
+Another problematic thing about the above JSON file structure is - it is not clear as to what's `allow_secrets`, which is the policy name as it's NOT labelled as `name` but it's clear as to what's the policy content as it's labelled as `policy`
+
+So, maybe do something like this -
+
+```json
+{
+  "policies": {
+    "allow_secrets": "path \"secret/*\" {\n  capabilities = [\"create\", \"read\", \"update\", \"delete\", \"list\"]\n}\n"
+  }
+}
+```
+
+Why? This way, it's not possible for someone to mention that same policy name as policy name comes as a key and the only value it has is a string which is the policy content
+
+Two problematic things about the above JSON file structure is - it is not clear as to what's `allow_secrets`, which is the policy name as it's NOT labelled as `name` and it's not clear as to what's the policy content as it's NOT labelled as `policy`. But that's a tradeoff we have to take to ensure that people don't face the above mentioned problems
