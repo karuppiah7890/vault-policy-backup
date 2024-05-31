@@ -543,6 +543,8 @@ Talking about future ideas, here are some of the ideas for the future -
 ]
 ```
 
+or by providing the names of Vault policies as arguments to the CLI, or provide the ability to use either of the two or even both
+
 - Give warning/information to user about how backup of root policy is not taken, so that they don't have to read the docs so much to understand this information. Reasoning - This is because - empty `root` Vault Policy - nothing to backup. Also, Vault does NOT support updating it / changing it - which would happen during the restore process - that is, reading from the Vault will succeed as part of backup, but later when we are writing to Vault as part of restore process, it will fail / throw error. So, no point in backing up an empty `root` policy to later try to restore it and get an error that `root` policy cannot be updated / changed
 
 - Provide ability to give a specific file name for storing the vault policy backup json and not just use the default hard coded `vault_policy_backup.json` file name
