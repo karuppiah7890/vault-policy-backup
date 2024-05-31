@@ -13,6 +13,9 @@ usage: vault-policy-backup [-quiet|--quiet] <vault-policy-name>
 
 Usage of vault-policy-backup:
 
+  -file / --file string
+      vault policy backup json file path (default "vault_policy_backup.json")
+
   -quiet / --quiet
       quiet progress (default false).
       By default vault-policy-backup CLI will show a lot of details
@@ -53,6 +56,7 @@ func main() {
 		os.Exit(0)
 	}
 	quietProgress := flag.Bool("quiet", false, "quiet progress")
+	vaultPolicyBackupJsonFileName := flag.String("file", "vault_policy_backup.json", "vault policy backup json file path")
 	flag.Parse()
 
 	if !(flag.NArg() == 1 || flag.NArg() == 0) {
@@ -89,7 +93,7 @@ func main() {
 		fmt.Fprintf(os.Stderr, "error converting vault policy backup to json: %s\n", err)
 		os.Exit(1)
 	}
-	err = writeToFile(vaultPolicyBackupJSON, "vault_policy_backup.json")
+	err = writeToFile(vaultPolicyBackupJSON, *vaultPolicyBackupJsonFileName)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "error writing vault policy backup to json file: %s\n", err)
 		os.Exit(1)
