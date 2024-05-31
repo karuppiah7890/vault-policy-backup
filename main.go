@@ -8,7 +8,19 @@ import (
 	"github.com/hashicorp/vault/api"
 )
 
-var usage = `usage: vault-policy-backup <vault-policy-name>
+var usage = `
+usage: vault-policy-backup [-quiet|--quiet] <vault-policy-name>
+
+Usage of vault-policy-backup:
+
+  -quiet / --quiet
+      quiet progress (default false).
+      By default vault-policy-backup CLI will show a lot of details
+      about the backup process and detailed progress during the
+      backup process
+
+  -h / -help / --help
+      show help
 
 examples:
 
@@ -28,6 +40,10 @@ vault-policy-backup allow_read
 
 # quietly backup all vault policies.
 # this will just show dots (.) for progress
+vault-policy-backup -quiet
+
+# OR you can use --quiet too instead of -quiet
+
 vault-policy-backup --quiet
 `
 
@@ -36,13 +52,8 @@ func main() {
 		fmt.Fprintf(os.Stdout, "%s", usage)
 		os.Exit(0)
 	}
-	showHelp := flag.Bool("h", false, "help")
-	quietProgress := flag.Bool("q", false, "quiet")
+	quietProgress := flag.Bool("quiet", false, "quiet progress")
 	flag.Parse()
-
-	if *showHelp {
-		flag.Usage()
-	}
 
 	if !(flag.NArg() == 1 || flag.NArg() == 0) {
 		fmt.Fprintf(os.Stderr, "invalid number of arguments: %d. expected 0 or 1 arguments.\n\n", flag.NArg())
