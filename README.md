@@ -26,7 +26,22 @@ make
 
 ```bash
 $ ./vault-policy-backup --help
-usage: vault-policy-backup <vault-policy-name>
+
+usage: vault-policy-backup [-quiet|--quiet] [-file|--file <vault-k8s-auth-backup-json-file-path>] [<vault-policy-name>]
+
+Usage of vault-policy-backup:
+
+  -file / --file string
+      vault policy backup json file path (default "vault_policy_backup.json")
+
+  -quiet / --quiet
+      quiet progress (default false).
+      By default vault-policy-backup CLI will show a lot of details
+      about the backup process and detailed progress during the
+      backup process
+
+  -h / -help / --help
+      show help
 
 examples:
 
@@ -46,6 +61,10 @@ vault-policy-backup allow_read
 
 # quietly backup all vault policies.
 # this will just show dots (.) for progress
+vault-policy-backup -quiet
+
+# OR you can use --quiet too instead of -quiet
+
 vault-policy-backup --quiet
 ```
 

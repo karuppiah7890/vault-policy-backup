@@ -9,7 +9,7 @@ import (
 )
 
 var usage = `
-usage: vault-policy-backup [-quiet|--quiet] <vault-policy-name>
+usage: vault-policy-backup [-quiet|--quiet] [-file|--file <vault-k8s-auth-backup-json-file-path>] [<vault-policy-name>]
 
 Usage of vault-policy-backup:
 
